@@ -3,6 +3,7 @@ package httpclient
 import (
 	"io/ioutil"
 	"net/http"
+	"net/textproto"
 	"net/url"
 	"strings"
 )
@@ -34,16 +35,22 @@ type HttpResponse struct {
 	Response *http.Response //原始 HTTP 响应 Response
 }
 
+type Dict map[string][]string
+
+func (h Dict) Store(key, value string) {
+	textproto.MIMEHeader(h).Add(key, value)
+}
+
 type RequestConfig struct {
-	URI                      string      //请求 URI	/getrecords.php
-	Method                   string      //请求方式，主要分为 GET、POST 等	GET
-	Data                     string      //请求携带数据
-	Following                int         //跳转次数	3
-	FollowRedirect           bool        //是否跳转	true
-	DenyFollwRedirectOutHost bool        //是否支持跳转到非 ip:port 的另外的网站
-	Header                   http.Header //Header 头
-	Timeout                  int         //请求超时时间	15
-	VerifyTls                bool        //是否验证 Tls 协议	true
+	URI                      string //请求 URI	/getrecords.php
+	Method                   string //请求方式，主要分为 GET、POST 等	GET
+	Data                     string //请求携带数据
+	Following                int    //跳转次数	3
+	FollowRedirect           bool   //是否跳转	true
+	DenyFollwRedirectOutHost bool   //是否支持跳转到非 ip:port 的另外的网站
+	Header                   Dict   //Header 头
+	Timeout                  int    //请求超时时间	15
+	VerifyTls                bool   //是否验证 Tls 协议	true
 	TrackFunction            func(string, string)
 	BasicAuth                string  //认证信息 user:pass 格式	admin:admin
 	Proxy                    url.URL //代理
