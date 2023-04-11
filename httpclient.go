@@ -1,6 +1,7 @@
 package httpclient
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/textproto"
@@ -62,6 +63,7 @@ func NewGetRequestConfig(uri string) *RequestConfig {
 	cfg := new(RequestConfig)
 	cfg.Method = "GET"
 	cfg.Header = make(map[string][]string)
+	cfg.URI = uri
 	return cfg
 }
 
@@ -70,6 +72,7 @@ func NewPostRequestConfig(uri string) *RequestConfig {
 	cfg := new(RequestConfig)
 	cfg.Method = "POST"
 	cfg.Header = make(map[string][]string)
+	cfg.URI = uri
 	return cfg
 }
 
@@ -77,6 +80,7 @@ func NewPostRequestConfig(uri string) *RequestConfig {
 func DoHttpRequest(hostinfo *FixUrl, req *RequestConfig) (*HttpResponse, error) {
 	goby_resp := new(HttpResponse)
 	client := http.Client{}
+	fmt.Println(hostinfo.IP + req.URI)
 	http_request, err := http.NewRequest(req.Method, hostinfo.IP+req.URI, strings.NewReader(req.Data))
 	for s, i := range req.Header {
 		http_request.Header.Add(s, i[0])
