@@ -63,6 +63,7 @@ func NewGetRequestConfig(uri string) *RequestConfig {
 	cfg := new(RequestConfig)
 	cfg.Method = "GET"
 	cfg.Header = make(map[string][]string)
+	cfg.Header.Store("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0) Gecko/20100101 Firefox/102.0")
 	cfg.URI = uri
 	return cfg
 }
@@ -72,6 +73,7 @@ func NewPostRequestConfig(uri string) *RequestConfig {
 	cfg := new(RequestConfig)
 	cfg.Method = "POST"
 	cfg.Header = make(map[string][]string)
+	cfg.Header.Store("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0) Gecko/20100101 Firefox/102.0")
 	cfg.URI = uri
 	return cfg
 }
@@ -86,7 +88,9 @@ func DoHttpRequest(hostinfo *FixUrl, req *RequestConfig) (*HttpResponse, error) 
 		http_request.Header.Add(s, i[0])
 	}
 	http_resp, err := client.Do(http_request)
-	defer http_resp.Body.Close()
+	if http_resp != nil {
+		defer http_resp.Body.Close()
+	}
 	body, err := ioutil.ReadAll(http_resp.Body)
 	goby_resp.RawBody = string(body)
 	goby_resp.StatusCode = http_resp.StatusCode
