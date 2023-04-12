@@ -1,12 +1,14 @@
 package httpclient
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/textproto"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type FixUrl struct {
@@ -81,20 +83,34 @@ func NewPostRequestConfig(uri string) *RequestConfig {
 // 发送http请求
 func DoHttpRequest(hostinfo *FixUrl, req *RequestConfig) (*HttpResponse, error) {
 	goby_resp := new(HttpResponse)
-	client := http.Client{}
-	fmt.Println(hostinfo.IP + req.URI)
+	// https证书校验开关
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: !req.VerifyTls},
+	}
+	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
+	//fmt.Println(hostinfo.IP + req.URI)
 	http_request, err := http.NewRequest(req.Method, hostinfo.IP+req.URI, strings.NewReader(req.Data))
+	if err != nil {
+		fmt.Println(err)
+	}
 	for s, i := range req.Header {
 		http_request.Header.Add(s, i[0])
 	}
+	//fmt.Println(http_request.Header)
 	http_resp, err := client.Do(http_request)
+	//fmt.Println(http_resp)
 	if http_resp != nil {
 		defer http_resp.Body.Close()
+		body, err := ioutil.ReadAll(http_resp.Body)
+		if err != nil {
+			fmt.Println("Read body failed:", err)
+		}
+		goby_resp.RawBody = string(body)
+		goby_resp.StatusCode = http_resp.StatusCode
+		goby_resp.Cookie = http_resp.Header.Get("Set-Cookie")
+		goby_resp.Response = http_resp
 	}
-	body, err := ioutil.ReadAll(http_resp.Body)
-	goby_resp.RawBody = string(body)
-	goby_resp.StatusCode = http_resp.StatusCode
-	goby_resp.Cookie = http_resp.Header.Get("Set-Cookie")
-	goby_resp.Response = http_resp
+	//fmt.Println(goby_resp)
+	//fmt.Println(err)
 	return goby_resp, err
 }
